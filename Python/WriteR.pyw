@@ -524,7 +524,9 @@ class MainWindow(wx.Frame):
 
     def CreateTextCtrl(self, text):
         text = wx.TextCtrl(self, -1, text, wx.Point(0, 0), wx.Size(150, 90),
-                           wx.NO_BORDER | wx.TE_MULTILINE)
+                           # wx.NO_BORDER | wx.TE_MULTILINE)
+                           wx.TE_MULTILINE)
+
         text.SetFont(self.font)
         return text
 
@@ -940,28 +942,29 @@ class MainWindow(wx.Frame):
         dlg.data = data  # save a reference to it...
         dlg.Show(True)
 
+    def FindFirst(self, findString):
+        for i in range(self.editor.GetNumberOfLines()):
+            line = self.editor.GetLineText(i)
+            if findString in line:
+               print(self.editor)
+               print self.editor.XYToPosition(0,i)
+
     def OnFind(self, event):
-        map = {
-            wx.wxEVT_COMMAND_FIND : "FIND",
-            wx.wxEVT_COMMAND_FIND_NEXT : "FIND_NEXT",
-            wx.wxEVT_COMMAND_FIND_REPLACE : "REPLACE",
-            wx.wxEVT_COMMAND_FIND_REPLACE_ALL : "REPLACE_ALL",
-            }
         et = event.GetEventType()
-        if et in map:
-            evtType = map[et]
-        else:
-            evtType = "**Unknown Event Type**"
-        if et in [wx.wxEVT_COMMAND_FIND_REPLACE, wx.wxEVT_COMMAND_FIND_REPLACE_ALL]:
+        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
+        findString = event.GetFindString()
+
+        if et == wx.wxEVT_COMMAND_FIND:
+            self.FindFirst(findString)
+            # self.editor.showPosition()
+        elif et == wx.wxEVT_COMMAND_FIND_NEXT:
+            self.pos = self.editor.find(findString, self.pos)
+        elif et == wx.wxEVT_COMMAND_FIND_REPLACE:
+            replaceTxt = "Replace text: %s" % event.GetReplaceString()
+        elif et == wx.wxEVT_COMMAND_FIND_REPLACE_ALL:
             replaceTxt = "Replace text: %s" % event.GetReplaceString()
         else:
-            replaceTxt = ""
-
-        self.console.write("%s -- Find text: %s  %s  Flags: %d  \n" % 
-                           (evtType, 
-                            event.GetFindString(), 
-                            replaceTxt, 
-                            event.GetFlags())) # Flags: 1-->Backward, 2-->WholeWord, 4-->MatchCase
+            self.console.write("unexpected et %s -- %s\n" % (et, event))
 
     def OnFindClose(self, event):
         event.GetDialog().Destroy()
