@@ -252,6 +252,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnFind)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
 
+        self.findData = wx.FindReplaceData()
+
     def CreateInteriorWindowComponents(self):
         self.editor = self.CreateTextCtrl(self.settings['newText'])
         self.console = self.CreateTextCtrl("")
@@ -300,9 +302,9 @@ class MainWindow(wx.Frame):
                  (wx.ID_DELETE, "&Delete", "Delete highlighted text", self.OnDelete),
                  (ID_WORDCOUNT, "Word count (broken)\tCtrl+w", "get a word count of the entire text", self.OnWordCount),
                  (None,) * 4,
-                 (ID_FINDONLY, "Find\tCtrl+F", "Open a standard find dialog box", self.OnShowFindToFix),
+                 (ID_FINDONLY, "Find\tCtrl+F", "Open a standard find dialog box", self.OnShowFind),
                  (ID_GOTO, "Go to line (broken)\tCtrl+g", "Open a dialog box to choose a line number", self.OnGoToLine),
-                 (ID_FINDREPLACE, "Find/replace\tCtrl+H", "Open a find/replace dialog box", self.OnShowFindReplaceToFix),
+                 (ID_FINDREPLACE, "Find/replace\tCtrl+H", "Open a find/replace dialog box", self.OnShowFindReplace),
                  (None,) * 4,
                  (ID_SETTINGS, 'Settings', "Setup the editor to your liking", self.OnSettings)]:
             if id == None:
@@ -926,11 +928,6 @@ class MainWindow(wx.Frame):
     def OnSettings(self, event):
         wx.MessageBox("You wanted to see the settings")
 
-    def OnShowFindToFix(self, event):
-        wx.MessageBox("This feature is not fully implemented as yet.")
-    def OnShowFindReplaceToFix(self, event):
-        wx.MessageBox("This feature is not fully implemented as yet.")
-
     def OnShowFind(self, event):
         data = wx.FindReplaceData()
         dlg = wx.FindReplaceDialog(self, data, "Find")
@@ -959,6 +956,12 @@ class MainWindow(wx.Frame):
             replaceTxt = "Replace text: %s" % event.GetReplaceString()
         else:
             replaceTxt = ""
+
+        self.console.write("%s -- Find text: %s  %s  Flags: %d  \n" % 
+                           (evtType, 
+                            event.GetFindString(), 
+                            replaceTxt, 
+                            event.GetFlags())) # Flags: 1-->Backward, 2-->WholeWord, 4-->MatchCase
 
     def OnFindClose(self, event):
         event.GetDialog().Destroy()
