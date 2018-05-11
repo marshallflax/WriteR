@@ -984,7 +984,10 @@ class MainWindow(wx.Frame):
         replaceString = self.ComputeReplacementString(event)
         oldText = self.editor.GetValue()
         newText = re.sub(findString, replaceString, oldText, flags=reFlags)
+
+        insertionPoint = self.editor.GetInsertionPoint()
         self.editor.SetValue(newText)
+        self.editor.SetInsertionPoint(insertionPoint)
 
     def OnFind(self, event):
         et = event.GetEventType()
