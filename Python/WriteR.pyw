@@ -943,7 +943,20 @@ class MainWindow(wx.Frame):
         dlg.data = data  # save a reference to it...
         dlg.Show(True)
 
+    def ComputeFindString(self, event):
+        if event.GetFlags() & 2:
+           return "".join(["\\b", re.escape(event.GetFindString()), "\\b"])
+        else:
+           return re.escape(event.GetFindString())
 
+    def ComputeReFlags(self, event):
+        if event.GetFlags() & 4:
+           return re.LOCALE
+        else:
+           return re.LOCALE | re.IGNORECASE
+
+    def ComputeReplacementString(self, event):
+        return event.GetReplaceString()
 
     def FindFirst(self, event):
         findString = event.GetFindString()
@@ -965,22 +978,10 @@ class MainWindow(wx.Frame):
         replaceString = event.GetReplaceString()
         flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
 
-    def ComputeFindString(self, event):
-        if event.GetFlags() & 2:
-           return "".join(["\\b", re.escape(event.GetFindString()), "\\b"])
-        else:
-           return re.escape(event.GetFindString())
-
-    def ComputeReFlags(self, event):
-        if event.GetFlags() & 4:
-           return re.LOCALE
-        else:
-           return re.LOCALE | re.IGNORECASE
-
     def ReplaceAll(self, event):
         findString = self.ComputeFindString(event)
         reFlags = self.ComputeReFlags(event)
-        replaceString = event.GetReplaceString()
+        replaceString = self.ComputeReplacementString(event)
         oldText = self.editor.GetValue()
         newText = re.sub(findString, replaceString, oldText, flags=reFlags)
         self.editor.SetValue(newText)
