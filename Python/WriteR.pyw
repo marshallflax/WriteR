@@ -7,6 +7,7 @@
 
 import wx 
 import sys
+import re
 # import FileMenuEvents # problems with this one
 import EditMenuEvents
 import HelpMenuEvents
@@ -942,29 +943,54 @@ class MainWindow(wx.Frame):
         dlg.data = data  # save a reference to it...
         dlg.Show(True)
 
-    def FindFirst(self, findString):
+    def FindFirst(self, event):
+        findString = event.GetFindString()
+        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
         for i in range(self.editor.GetNumberOfLines()):
             line = self.editor.GetLineText(i)
             if findString in line:
-               print(self.editor)
                print self.editor.XYToPosition(0,i)
+
+    def FindNext(self, event):
+        findString = event.GetFindString()
+        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
+        insertionPoint = self.editor.GetInsertionPoint()
+        (hasInsertionPoint, insertx, inserty) = self.editor.PositionToXY(insertionPoint)
+        pos = self.editor.find(findString, self.pos)
+
+    def ReplaceNext(self, event):
+        findString = event.GetFindString()
+        replaceString = event.GetReplaceString()
+        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
+
+    def ReplaceAll(self, event):
+        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
+        if flags & 2:
+           findString = "".join(["\\b", re.escape(event.GetFindString()), "\\b"])
+        else:
+           findString = re.escape(event.GetFindString())
+        if flags & 4:
+           reFlags = re.LOCALE
+        else:
+           reFlags = re.LOCALE | re.IGNORECASE
+        replaceString = event.GetReplaceString()
+        oldText = self.editor.GetValue()
+        newText = re.sub(findString, replaceString, oldText, flags=reFlags)
+        self.editor.SetValue(newText)
 
     def OnFind(self, event):
         et = event.GetEventType()
-        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
-        findString = event.GetFindString()
 
         if et == wx.wxEVT_COMMAND_FIND:
-            self.FindFirst(findString)
-            # self.editor.showPosition()
+            self.FindFirst(event)
         elif et == wx.wxEVT_COMMAND_FIND_NEXT:
-            self.pos = self.editor.find(findString, self.pos)
+            self.FindNext(event);
         elif et == wx.wxEVT_COMMAND_FIND_REPLACE:
-            replaceTxt = "Replace text: %s" % event.GetReplaceString()
+            self.ReplaceNext(event)
         elif et == wx.wxEVT_COMMAND_FIND_REPLACE_ALL:
-            replaceTxt = "Replace text: %s" % event.GetReplaceString()
+            self.ReplaceAll(event)
         else:
-            self.console.write("unexpected et %s -- %s\n" % (et, event))
+            self.console.write("unexpected eventType %s -- %s\n" % (et, event))
 
     def OnFindClose(self, event):
         event.GetDialog().Destroy()
