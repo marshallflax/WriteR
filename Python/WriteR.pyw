@@ -209,6 +209,8 @@ class MainWindow(wx.Frame):
                                         wx.CLIP_CHILDREN, filename="untitled.Rmd"):
         super(MainWindow, self).__init__(parent, id, title, pos, size, style)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.player=wx.Sound("close-object.wav")
+        self.player.Play(wx.SOUND_ASYNC)
         self._mgr = AuiManager()
         self._mgr.SetManagedWindow(self)
         self.ChosenFontSize = 14
