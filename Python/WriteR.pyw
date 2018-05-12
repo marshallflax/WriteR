@@ -960,52 +960,49 @@ class MainWindow(wx.Frame):
     def ComputeReplacementString(self, event):
         return event.GetReplaceString()
 
-    def MoveTo(self, event, row, col):
+    def MoveTo(self, row, col):
        self.priorMatchRow = row
        self.priorMatchCol = col
-       self.console.write("MoveTo {},{}\n".format(row, col))
+       # self.console.write("MoveTo {},{}\n".format(row, col))
        position = self.editor.XYToPosition(col, row)
        self.editor.SetInsertionPoint(position)
        self.editor.ShowPosition(position)
 
 
-    def FindFrom(self, event, currentRow, currentColumn):
-        regex = re.compile(self.ComputeFindString(event), self.ComputeReFlags(event))
-        forward = event.GetFlags() & wx.FR_DOWN
-
+    def FindFrom(self, currentColumn, currentRow):
         # Special logic for checking just part of current line
         currentLine = self.editor.GetLineText(currentRow)
-        if forward:
-           matchObject = regex.search(currentLine[currentColumn+1:])
+        if self.forward:
+           matchObject = self.regex.search(currentLine[currentColumn+1:])
            if matchObject:
-               self.MoveTo(event, currentRow, currentColumn + 1 + matchObject.start())
+               self.MoveTo(currentRow, currentColumn + 1 + matchObject.start())
                return
         else:
-           matchObject = regex.search(currentLine[:currentColumn])
+           matchObject = self.regex.search(currentLine[:currentColumn])
            if matchObject:
-               for matchObject in regex.finditer(currentLine[:currentColumn]):
+               for matchObject in self.regex.finditer(currentLine[:currentColumn]):
                    pass
-               self.MoveTo(event, currentRow, matchObject.start())
+               self.MoveTo(currentRow, matchObject.start())
                return
 
         # General case for checking whole lines
-        if forward:
+        if self.forward:
            lineRange = range(currentRow+1, self.editor.GetNumberOfLines())
         else:
            lineRange = reversed(range(0, currentRow)) 
 
         for i in lineRange:
             line = self.editor.GetLineText(i)
-            matchObject = regex.search(line)
+            matchObject = self.regex.search(line)
             if matchObject:
-               if not forward:
-                  for matchObject in regex.finditer(line):
+               if not self.forward:
+                  for matchObject in self.regex.finditer(line):
                       pass
 
-               self.MoveTo(event, i, matchObject.start())
+               self.MoveTo(i, matchObject.start())
                return
 
-	self.console.write("no match starting from row {} col {}\n".format(currentRow, currentColumn))
+	# self.console.write("no match starting from row {} col {}\n".format(currentRow, currentColumn))
 
     def ReplaceNext(self, event):
         return
@@ -1022,20 +1019,19 @@ class MainWindow(wx.Frame):
         self.editor.SetInsertionPoint(insertionPoint)
 
     def F3Next(self, event):
-        if self.savedFindEvent:
-           self.FindFrom(self.savedFindEvent, self.priorMatchRow, self.priorMatchCol)
-        else:
-	   self.console.write("no saved event!\n")
+        self.FindFrom(self.priorMatchCol, self.priorMatchRow)
 
     def OnFind(self, event):
-        self.savedFindEvent = event.Clone()
         et = event.GetEventType()
 
+        self.regex = re.compile(self.ComputeFindString(event), self.ComputeReFlags(event))
+        self.forward = event.GetFlags() & wx.FR_DOWN
+
         if et == wx.wxEVT_COMMAND_FIND:
-	    (x, y) = self.editor.PositionToXY(self.editor.GetInsertionPoint())
-            self.FindFrom(event, y, x)
+            (col, row) = self.editor.PositionToXY(self.editor.GetInsertionPoint())
+            self.FindFrom(col, row)
         elif et == wx.wxEVT_COMMAND_FIND_NEXT:
-            self.FindFrom(event, self.priorMatchRow, self.priorMatchCol)
+            self.FindFrom(self.priorMatchCol, self.priorMatchRow)
         elif et == wx.wxEVT_COMMAND_FIND_REPLACE:
             self.ReplaceNext(event)
         elif et == wx.wxEVT_COMMAND_FIND_REPLACE_ALL:
