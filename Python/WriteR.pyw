@@ -209,8 +209,6 @@ class MainWindow(wx.Frame):
                                         wx.CLIP_CHILDREN, filename="untitled.Rmd"):
         super(MainWindow, self).__init__(parent, id, title, pos, size, style)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.player=wx.Sound("close-object.wav")
-        self.player.Play(wx.SOUND_ASYNC)
         self._mgr = AuiManager()
         self._mgr.SetManagedWindow(self)
         self.ChosenFontSize = 14
@@ -268,8 +266,13 @@ class MainWindow(wx.Frame):
         self._mgr.GetPane("editor").Show()
         self.editor.SetFocus()
         self.editor.SelectAll()
+        self.nope=wx.Sound("nope.wav")
         self._mgr.Update()
         # self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+
+
+    def Nope(self):
+        self.nope.Play(wx.SOUND_ASYNC)
 
     def CreateExteriorWindowComponents(self):
         self.CreateMenu()
@@ -1000,6 +1003,7 @@ class MainWindow(wx.Frame):
                self.MoveTo(i, matchObject.start())
                return
 
+        self.Nope()
 	# self.console.write("no match starting from row {} col {}\n".format(currentRow, currentColumn))
 
     def ReplaceNext(self, event):
