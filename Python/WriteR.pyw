@@ -31,6 +31,7 @@ ID_KNIT2PDF = wx.NewId()
 ID_SETTINGS = wx.NewId()
 
 ID_FINDONLY = wx.NewId()
+ID_FINDNEXT = wx.NewId()
 ID_FINDREPLACE = wx.NewId()
 ID_GOTO  = wx.NewId()
 ID_WORDCOUNT = wx.NewId()
@@ -304,6 +305,7 @@ class MainWindow(wx.Frame):
                  (ID_WORDCOUNT, "Word count (broken)\tCtrl+w", "get a word count of the entire text", self.OnWordCount),
                  (None,) * 4,
                  (ID_FINDONLY, "Find\tCtrl+F", "Open a standard find dialog box", self.OnShowFind),
+                 (ID_FINDNEXT, "FindNext\tF3", "FindNext", self.F3Next),
                  (ID_GOTO, "Go to line (broken)\tCtrl+g", "Open a dialog box to choose a line number", self.OnGoToLine),
                  (ID_FINDREPLACE, "Find/replace\tCtrl+H", "Open a find/replace dialog box", self.OnShowFindReplace),
                  (None,) * 4,
@@ -841,9 +843,6 @@ class MainWindow(wx.Frame):
             self.statusbar.Show()
             self.SetStatusText(SBText)
 
-
-
-
     def OnClose(self, event):
         self.settings['filename'] = self.filename
         self.settings['lastdir'] = self.dirname
@@ -940,6 +939,7 @@ class MainWindow(wx.Frame):
 
     def OnShowFindReplace(self, event):
         data = wx.FindReplaceData()
+        data.SetFlags(wx.FR_DOWN)
         dlg = wx.FindReplaceDialog(self, data, "Find & Replace", wx.FR_REPLACEDIALOG)
         dlg.data = data  # save a reference to it...
         dlg.Show(True)
@@ -1029,7 +1029,12 @@ class MainWindow(wx.Frame):
         self.editor.SetValue(newText)
         self.editor.SetInsertionPoint(insertionPoint)
 
+    def F3Next(self, event):
+        if self.savedFindEvent:
+           self.FindNext(self.savedFindEvent)
+
     def OnFind(self, event):
+        self.savedFindEvent = event.Clone()
         et = event.GetEventType()
 
         if et == wx.wxEVT_COMMAND_FIND:
