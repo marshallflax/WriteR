@@ -959,38 +959,64 @@ class MainWindow(wx.Frame):
     def ComputeReplacementString(self, event):
         return event.GetReplaceString()
 
-    def MoveTo(self, event, x, y):
-       print "MoveTo {},{}".format(x, y)
- 
+    def MoveTo(self, event, row, col):
+       self.priorMatchRow = row
+       self.priorMatchCol = col
+       print("MoveTo {},{}".format(row, col))
+       position = self.editor.XYToPosition(col, row)
+       self.editor.SetInsertionPoint(position)
+       self.editor.ShowPosition(position)
+
+    # FindFirst is just a FindFrom starting at the very top or bottom 
     def FindFirst(self, event):
+        if event.GetFlags() & wx.FR_DOWN:
+           self.FindFrom(event, 0, -1)
+        else:
+           lastLineNumber = self.editor.GetNumberOfLines() - 1
+           lastLine = self.editor.GetLineText(lastLineNumber)
+           self.FindFrom(event, lastLineNumber, len(lastLine))
+ 
+    def FindNext(self, event):
+        self.FindFrom(event, self.priorMatchRow, self.priorMatchCol)
+
+    def FindFrom(self, event, currentRow, currentColumn):
         regex = re.compile(self.ComputeFindString(event), self.ComputeReFlags(event))
-        backward = not(event.GetFlags() & wx.FR_DOWN)
-        lineRange = range(self.editor.GetNumberOfLines())
-        if backward:
-           lineRange = reversed(lineRange)
+        forward = event.GetFlags() & wx.FR_DOWN
+
+        # Special logic for checking just part of current line
+        currentLine = self.editor.GetLineText(currentRow)
+        if forward:
+           matchObject = regex.search(currentLine[currentColumn+1:])
+           if matchObject:
+               self.MoveTo(event, currentRow, currentColumn + 1 + matchObject.start())
+               return
+        else:
+           matchObject = regex.search(currentLine[:currentColumn])
+           if matchObject:
+               for matchObject in regex.finditer(currentLine[:currentColumn]):
+                   pass
+               self.MoveTo(event, currentRow, matchObject.start())
+               return
+
+        # General case for checking whole lines
+        if forward:
+           lineRange = range(currentRow+1, self.editor.GetNumberOfLines())
+        else:
+           lineRange = reversed(range(0, currentRow)) 
 
         for i in lineRange:
             line = self.editor.GetLineText(i)
             matchObject = regex.search(line)
             if matchObject:
-               if backward:
+               if not forward:
                   for matchObject in regex.finditer(line):
                       pass
 
                self.MoveTo(event, i, matchObject.start())
                return
 
-    def FindNext(self, event):
-        findString = event.GetFindString()
-        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
-        insertionPoint = self.editor.GetInsertionPoint()
-        (hasInsertionPoint, insertx, inserty) = self.editor.PositionToXY(insertionPoint)
-        pos = self.editor.find(findString, self.pos)
-
     def ReplaceNext(self, event):
-        findString = event.GetFindString()
-        replaceString = event.GetReplaceString()
-        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
+        return
 
     def ReplaceAll(self, event):
         findString = self.ComputeFindString(event)
