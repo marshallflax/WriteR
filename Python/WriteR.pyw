@@ -253,7 +253,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_FIND_REPLACE_ALL, self.OnFind)
         self.Bind(wx.EVT_FIND_CLOSE, self.OnFindClose)
 
-        self.findData = wx.FindReplaceData()
+        # self.findData = wx.FindReplaceData()
 
     def CreateInteriorWindowComponents(self):
         self.editor = self.CreateTextCtrl(self.settings['newText'])
@@ -933,6 +933,7 @@ class MainWindow(wx.Frame):
 
     def OnShowFind(self, event):
         data = wx.FindReplaceData()
+        data.SetFlags(wx.FR_DOWN)
         dlg = wx.FindReplaceDialog(self, data, "Find")
         dlg.data = data  # save a reference to it...
         dlg.Show(True)
@@ -944,13 +945,13 @@ class MainWindow(wx.Frame):
         dlg.Show(True)
 
     def ComputeFindString(self, event):
-        if event.GetFlags() & 2:
-           return "".join(["\\b", re.escape(event.GetFindString()), "\\b"])
+        if event.GetFlags() & wx.FR_WHOLEWORD:
+           return "".join([r"\b", re.escape(event.GetFindString()), r"\b"])
         else:
-           return re.escape(event.GetFindString())
+           return "".join([re.escape(event.GetFindString())])
 
     def ComputeReFlags(self, event):
-        if event.GetFlags() & 4:
+        if event.GetFlags() & wx.FR_MATCHCASE:
            return re.LOCALE
         else:
            return re.LOCALE | re.IGNORECASE
@@ -958,13 +959,26 @@ class MainWindow(wx.Frame):
     def ComputeReplacementString(self, event):
         return event.GetReplaceString()
 
+    def MoveTo(self, event, x, y):
+       print "MoveTo {},{}".format(x, y)
+ 
     def FindFirst(self, event):
-        findString = event.GetFindString()
-        flags = event.GetFlags() # 1-->Backward, 2-->WholeWord, 4-->MatchCase
-        for i in range(self.editor.GetNumberOfLines()):
+        regex = re.compile(self.ComputeFindString(event), self.ComputeReFlags(event))
+        backward = not(event.GetFlags() & wx.FR_DOWN)
+        lineRange = range(self.editor.GetNumberOfLines())
+        if backward:
+           lineRange = reversed(lineRange)
+
+        for i in lineRange:
             line = self.editor.GetLineText(i)
-            if findString in line:
-               print self.editor.XYToPosition(0,i)
+            matchObject = regex.search(line)
+            if matchObject:
+               if backward:
+                  for matchObject in regex.finditer(line):
+                      pass
+
+               self.MoveTo(event, i, matchObject.start())
+               return
 
     def FindNext(self, event):
         findString = event.GetFindString()
