@@ -21,7 +21,7 @@ from os.path import join, split, isdir, expanduser, realpath
 from os import walk
 from time import asctime, sleep
 
-print_option = False
+print_option = True
 display_rscript_cmd = True
 
 # set up some ID tags
@@ -147,7 +147,8 @@ def dcf_loads(string):
 
 
 def printing(*args):
-    if print_option: print args
+    if print_option: 
+       print args
 
 
 class BashProcessThread(Thread):
@@ -962,22 +963,11 @@ class MainWindow(wx.Frame):
     def MoveTo(self, event, row, col):
        self.priorMatchRow = row
        self.priorMatchCol = col
-       print("MoveTo {},{}".format(row, col))
+       self.console.write("MoveTo {},{}\n".format(row, col))
        position = self.editor.XYToPosition(col, row)
        self.editor.SetInsertionPoint(position)
        self.editor.ShowPosition(position)
 
-    # FindFirst is just a FindFrom starting at the very top or bottom 
-    def FindFirst(self, event):
-        if event.GetFlags() & wx.FR_DOWN:
-           self.FindFrom(event, 0, -1)
-        else:
-           lastLineNumber = self.editor.GetNumberOfLines() - 1
-           lastLine = self.editor.GetLineText(lastLineNumber)
-           self.FindFrom(event, lastLineNumber, len(lastLine))
- 
-    def FindNext(self, event):
-        self.FindFrom(event, self.priorMatchRow, self.priorMatchCol)
 
     def FindFrom(self, event, currentRow, currentColumn):
         regex = re.compile(self.ComputeFindString(event), self.ComputeReFlags(event))
@@ -1015,6 +1005,8 @@ class MainWindow(wx.Frame):
                self.MoveTo(event, i, matchObject.start())
                return
 
+	self.console.write("no match starting from row {} col {}\n".format(currentRow, currentColumn))
+
     def ReplaceNext(self, event):
         return
 
@@ -1031,16 +1023,19 @@ class MainWindow(wx.Frame):
 
     def F3Next(self, event):
         if self.savedFindEvent:
-           self.FindNext(self.savedFindEvent)
+           self.FindFrom(self.savedFindEvent, self.priorMatchRow, self.priorMatchCol)
+        else:
+	   self.console.write("no saved event!\n")
 
     def OnFind(self, event):
         self.savedFindEvent = event.Clone()
         et = event.GetEventType()
 
         if et == wx.wxEVT_COMMAND_FIND:
-            self.FindFirst(event)
+	    (x, y) = self.editor.PositionToXY(self.editor.GetInsertionPoint())
+            self.FindFrom(event, y, x)
         elif et == wx.wxEVT_COMMAND_FIND_NEXT:
-            self.FindNext(event);
+            self.FindFrom(event, self.priorMatchRow, self.priorMatchCol)
         elif et == wx.wxEVT_COMMAND_FIND_REPLACE:
             self.ReplaceNext(event)
         elif et == wx.wxEVT_COMMAND_FIND_REPLACE_ALL:
