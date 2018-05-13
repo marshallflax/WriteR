@@ -948,11 +948,9 @@ class MainWindow(wx.Frame):
         dlg.Show(True)
 
     def OnSetMark(self, event):
-        print "OnSetMark\n"
         self.mark = self.editor.GetInsertionPoint()
 
     def OnSelectToMark(self, event):
-        print "OnSelectToMark\n"
         insertionPoint = self.editor.GetInsertionPoint()
         if (self.mark < insertionPoint):
            self.editor.SetSelection(self.mark, insertionPoint)
