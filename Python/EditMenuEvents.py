@@ -16,7 +16,7 @@ def OnGoToLine(self, event):
         if dialog.ShowModal() == wx.ID_OK:
             line=dialog.GetValue()
             line=max(0,min(self.editor.GetNumberOfLines(),line))
-#            self.editor.GotoLine(dialog.GetValue()) # needs wx.stc to be used
+            self.editor.SetInsertionPoint(self.editor.XYToPosition(0, dialog.GetValue()))
         dialog.Destroy()
     
 def OnCut(self, event):

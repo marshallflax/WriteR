@@ -36,6 +36,8 @@ ID_FINDREPLACE = wx.NewId()
 ID_GOTO  = wx.NewId()
 ID_WORDCOUNT = wx.NewId()
 
+ID_SETMARK = wx.NewId()
+ID_SELECTTOMARK = wx.NewId()
 
 # symbols menu for mathematical symbols
 ID_SYMBOL_INFINITY = wx.NewId() 
@@ -267,7 +269,10 @@ class MainWindow(wx.Frame):
         self._mgr.GetPane("editor").Show()
         self.editor.SetFocus()
         self.editor.SelectAll()
-        self.nope=wx.Sound("nope.wav")
+        try:
+            self.nope=wx.Sound("nope.wav")
+        except AttributeError:
+            print ("Unable to create sound object")
         self._mgr.Update()
         # self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
 
@@ -309,8 +314,10 @@ class MainWindow(wx.Frame):
                  (None,) * 4,
                  (ID_FINDONLY, "Find\tCtrl+F", "Open a standard find dialog box", self.OnShowFind),
                  (ID_FINDNEXT, "FindNext\tF3", "FindNext", self.F3Next),
-                 (ID_GOTO, "Go to line (broken)\tCtrl+g", "Open a dialog box to choose a line number", self.OnGoToLine),
+                 (ID_GOTO, "Go to line\tCtrl+g", "Open a dialog box to choose a line number", self.OnGoToLine),
                  (ID_FINDREPLACE, "Find/replace\tCtrl+H", "Open a find/replace dialog box", self.OnShowFindReplace),
+                 (ID_SETMARK, "Set Mark\tCtrl+SPACE", "Set Mark", self.OnSetMark),
+                 (ID_SELECTTOMARK , "Select To Mark\tAlt+Ctrl+SPACE", "Select To Mark", self.OnSelectToMark),
                  (None,) * 4,
                  (ID_SETTINGS, 'Settings', "Setup the editor to your liking", self.OnSettings)]:
             if id == None:
@@ -939,6 +946,18 @@ class MainWindow(wx.Frame):
         dlg = wx.FindReplaceDialog(self, data, "Find")
         dlg.data = data  # save a reference to it...
         dlg.Show(True)
+
+    def OnSetMark(self, event):
+        print "OnSetMark\n"
+        self.mark = self.editor.GetInsertionPoint()
+
+    def OnSelectToMark(self, event):
+        print "OnSelectToMark\n"
+        insertionPoint = self.editor.GetInsertionPoint()
+        if (self.mark < insertionPoint):
+           self.editor.SetSelection(self.mark, insertionPoint)
+        elif (self.mark > insertionPoint):
+           self.editor.SetSelection(insertionPoint, self.mark)
 
     def OnShowFindReplace(self, event):
         data = wx.FindReplaceData()
