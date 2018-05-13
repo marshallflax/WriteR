@@ -166,7 +166,8 @@ class BashProcessThread(Thread):
         for line in self.comp_thread.stdout:
             writelineFunc(line)
 
-        self.comp_thread.wait()
+        returnCode = self.comp_thread.wait()
+        writelineFunc("\nReturn code: {}".format(returnCode))
 
 class MyInterpretor(object):
     def __init__(self, locals, rawin, stdin, stdout, stderr):
