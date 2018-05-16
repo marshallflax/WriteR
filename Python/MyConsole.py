@@ -17,3 +17,6 @@ class MyConsole:
 
     def CreateWriteText(self, text):
         self.console.write(text)
+
+    def DoneFunc(self, retcode):
+        self.console.write("Done {}".format(retcode))
