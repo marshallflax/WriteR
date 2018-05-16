@@ -1,22 +1,22 @@
-from wx.aui import AuiManager, AuiPaneInfo
+import wx
 
 class MyConsole:
     def __init__(self, parent):
-        self.console = parent.CreateTextCtrl("")
-        self.console.SetEditable(False)
-        parent._mgr.AddPane(self.console, AuiPaneInfo().Name("console")
-                          .Caption("Console").Bottom().Layer(1).Position(1).CloseButton(True)
-                          .MinimizeButton(True).Hide())
-        parent._mgr.GetPane("console").Hide().Bottom().Layer(0).Row(0).Position(0)
+        self.lines = []
+        self.parent = parent
 
     def Reset(self):
-        self.console.setValue('')
+        self.lines = []
 
     def write(self, text):
-        self.console.write(text)
+        self.lines.append(text)
 
     def CreateWriteText(self, text):
-        self.console.write(text)
+        self.lines.append(text)
 
     def DoneFunc(self, retcode):
-        self.console.write("Done {}".format(retcode))
+        self.lines.append("ReturnCode: {}".format(retcode))
+        dialog = wx.MessageDialog(self.parent, "\n".join(self.lines), "CommandResult", wx.OK)
+        dialog.ShowModal()
+        dialog.Destroy()
+
