@@ -12,6 +12,7 @@ import re
 import EditMenuEvents
 import HelpMenuEvents
 import MathInserts
+import MyConsole
 import RMarkdownEvents
 from wx.py.shell import Shell
 from wx.aui import AuiManager, AuiPaneInfo
@@ -258,14 +259,9 @@ class MainWindow(wx.Frame):
 
     def CreateInteriorWindowComponents(self):
         self.editor = self.CreateTextCtrl(self.settings['newText'])
-        self.console = self.CreateTextCtrl("")
-        self.console.SetEditable(False)
-        self._mgr.AddPane(self.console, AuiPaneInfo().Name("console")
-                          .Caption("Console").Bottom().Layer(1).Position(1).CloseButton(True)
-                          .MinimizeButton(True).Hide())
+        self.console = MyConsole.MyConsole(self)
         self._mgr.AddPane(self.editor, AuiPaneInfo().Name('editor').
                           CenterPane().Hide())
-        self._mgr.GetPane("console").Hide().Bottom().Layer(0).Row(0).Position(0)
         self._mgr.GetPane("editor").Show()
         self.editor.SetFocus()
         self.editor.SelectAll()
@@ -671,8 +667,8 @@ class MainWindow(wx.Frame):
             while self.comp_thread.isAlive():
                 sleep(1)
             self.sub_flag.clear()
-            self.console.SetValue('')
-        self.comp_thread = BashProcessThread(self.sub_flag, input_object, self.console.WriteText)
+            self.console.Reset()
+        self.comp_thread = BashProcessThread(self.sub_flag, input_object, self.console.CreateWriteText)
         self.comp_thread.start()
 
     # Build Menu events
