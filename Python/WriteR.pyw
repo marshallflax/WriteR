@@ -168,18 +168,22 @@ class BashProcessThread(Thread):
         self.setDaemon(True)
         self.input_list = input_list
         printing(input_list)
-        self.comp_thread = Popen(input_list, stdout=PIPE, stderr=STDOUT)
-
-        if display_rscript_cmd:
-           writelineFunc('\n'.join(input_list))
-           writelineFunc('\n\n')
-
-        for line in self.comp_thread.stdout:
-            writelineFunc(line)
-
-        returnCode = self.comp_thread.wait()
-        del busy
-        doneFunc(returnCode)
+        try: 
+            self.comp_thread = Popen(input_list, stdout=PIPE, stderr=STDOUT)
+    
+            if display_rscript_cmd:
+               writelineFunc('\n'.join(input_list))
+               writelineFunc('\n\n')
+    
+            for line in self.comp_thread.stdout:
+                writelineFunc(line)
+    
+            returnCode = self.comp_thread.wait()
+            del busy
+            doneFunc(returnCode)
+        except Exception as error:
+            del busy
+            doneFunc("\nCaught error {} for {}".format(error, input_list))
 
 ID_DIRECTORY_CHANGE = wx.NewId()
 ID_CRAN = wx.NewId()
