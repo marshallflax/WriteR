@@ -38,6 +38,7 @@ ID_BUILD = wx.NewId()
 ID_KNIT2HTML = wx.NewId()
 ID_KNIT2PDF = wx.NewId()
 ID_SETTINGS = wx.NewId()
+ID_SYNTAXSTYLE = wx.NewId()
 
 ID_FINDONLY = wx.NewId()
 ID_FINDNEXT = wx.NewId()
@@ -347,6 +348,7 @@ class MainWindow(wx.Frame):
         buildMenu.Append(-1, "Set render process to...", renderMenu) # Add the render Menu as a submenu to the build menu
         for id, label, helpText, handler in \
                 [
+                 (ID_SYNTAXSTYLE, "Syntax Style\tCtrl-Alt-F5", "Distiguish code blocks and latex markup", self.OnSyntaxStyle),
                  (ID_KNIT2HTML, "Knit to html\tF6", "Knit the script to HTML", self.OnKnit2html),
                  (ID_KNIT2PDF, "Knit to pdf\tShift+F6", "Knit the script to a pdf file using LaTeX", self.OnKnit2pdf)]:
             if id == None:
@@ -840,6 +842,49 @@ class MainWindow(wx.Frame):
         self.editor.WriteText("\n##### ") 
     def OnHeading6(self, event):
         self.editor.WriteText("\n###### ")
+
+    def computeStyle(self, status):
+        style = wx.TextAttr()
+        if status == 1:
+           style.SetBackgroundColour(wx.Colour(255, 0, 0))
+        elif status == 2:
+           style.SetBackgroundColour(wx.Colour(0, 255, 0))
+        elif status == 4:
+           style.SetBackgroundColour(wx.Colour(0, 0, 255))
+        if status == 3:
+           style.SetBackgroundColour(wx.Colour(255, 255, 0))
+        elif status == 6:
+           style.SetBackgroundColour(wx.Colour(0, 255, 255))
+        elif status == 5:
+           style.SetBackgroundColour(wx.Colour(255, 0, 255))
+        elif status == 7:
+           style.SetBackgroundColour(wx.Colour(127, 127, 127))
+        return style
+
+    def OnSyntaxStyle(self, event):
+        state = 0
+        startRange = 0
+        for i in range(0, self.editor.GetNumberOfLines()):
+            line = self.editor.GetLineText(i)
+            if line.startswith("---"):
+               newstate = state ^ 1
+            elif line.startswith("```"):
+               newstate = state ^ 2
+            elif line.startswith("$$"):
+               newstate = state ^ 4
+            else:
+               newstate = state
+
+            if newstate != state:
+               endPriorRange = self.editor.XYToPosition(0, i)
+               style = self.computeStyle(state)
+               print ("setStyle {} {} {}".format(startRange, endPriorRange, style))
+               self.editor.SetStyle(startRange, endPriorRange, style)
+               startRange = endPriorRange
+               state = newstate
+        style = self.computeStyle(state)
+        self.editor.SetStyle(startRange, self.editor.GetLastPosition(), style)
+        print ("last setStyle {} {} {}".format(startRange, self.editor.GetLastPosition(), style))
 
     # view menu events
     def ToggleStatusBar(self, event):
