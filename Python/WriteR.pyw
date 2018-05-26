@@ -519,7 +519,7 @@ class MainWindow(wx.Frame):
     def CreateTextCtrl(self, text):
         text = wx.TextCtrl(self, -1, text, wx.Point(0, 0), wx.Size(150, 90),
                            # wx.NO_BORDER | wx.TE_MULTILINE)
-                           wx.TE_MULTILINE)
+                           wx.TE_MULTILINE | wx.TE_RICH)
 
         text.SetFont(self.font)
         return text
@@ -878,13 +878,11 @@ class MainWindow(wx.Frame):
             if newstate != state:
                endPriorRange = self.editor.XYToPosition(0, i)
                style = self.computeStyle(state)
-               print ("setStyle {} {} {}".format(startRange, endPriorRange, style))
                self.editor.SetStyle(startRange, endPriorRange, style)
                startRange = endPriorRange
                state = newstate
         style = self.computeStyle(state)
         self.editor.SetStyle(startRange, self.editor.GetLastPosition(), style)
-        print ("last setStyle {} {} {}".format(startRange, self.editor.GetLastPosition(), style))
 
     # view menu events
     def ToggleStatusBar(self, event):
