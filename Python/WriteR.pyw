@@ -845,20 +845,28 @@ class MainWindow(wx.Frame):
 
     def computeStyle(self, status):
         style = wx.TextAttr()
-        if status == 1:
-           style.SetBackgroundColour(wx.Colour(255, 0, 0))
-        elif status == 2:
-           style.SetBackgroundColour(wx.Colour(0, 255, 0))
-        elif status == 4:
-           style.SetBackgroundColour(wx.Colour(0, 0, 255))
-        if status == 3:
-           style.SetBackgroundColour(wx.Colour(255, 255, 0))
-        elif status == 6:
-           style.SetBackgroundColour(wx.Colour(0, 255, 255))
-        elif status == 5:
-           style.SetBackgroundColour(wx.Colour(255, 0, 255))
-        elif status == 7:
-           style.SetBackgroundColour(wx.Colour(127, 127, 127))
+        if True:
+           if status == 1:
+              style.SetBackgroundColour(wx.Colour(255, 0, 0))
+           elif status == 2:
+              style.SetBackgroundColour(wx.Colour(0, 255, 0))
+           elif status == 4:
+              style.SetBackgroundColour(wx.Colour(0, 0, 255))
+           if status == 3:
+              style.SetBackgroundColour(wx.Colour(255, 255, 0))
+           elif status == 6:
+              style.SetBackgroundColour(wx.Colour(0, 255, 255))
+           elif status == 5:
+              style.SetBackgroundColour(wx.Colour(255, 0, 255))
+           elif status == 7:
+              style.SetBackgroundColour(wx.Colour(127, 127, 127))
+        else:
+           if status & 1:
+              style.SetFontUnderlined(True)
+           if status & 2:
+              style.SetFontStyle(wx.FONTSTYLE_ITALIC)
+           if status & 4:
+              style.SetFontWeight(wx.FONTWEIGHT_BOLD)
         return style
 
     def OnSyntaxStyle(self, event):
@@ -872,6 +880,10 @@ class MainWindow(wx.Frame):
                newstate = state ^ 2
             elif line.startswith("$$"):
                newstate = state ^ 4
+            elif line.startswith("\["):
+               newstate = state | 4
+            elif line.startswith("\]"):
+               newstate = state & ~4
             else:
                newstate = state
 
