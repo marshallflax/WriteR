@@ -876,7 +876,10 @@ class MainWindow(wx.Frame):
                newstate = state
 
             if newstate != state:
-               endPriorRange = self.editor.XYToPosition(0, i)
+               if (newstate > state):
+                  endPriorRange = self.editor.XYToPosition(0, i)
+               else:
+                  endPriorRange = self.editor.XYToPosition(len(line), i)
                style = self.computeStyle(state)
                self.editor.SetStyle(startRange, endPriorRange, style)
                startRange = endPriorRange
